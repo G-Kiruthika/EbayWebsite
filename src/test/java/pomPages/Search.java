@@ -1,68 +1,107 @@
 package pomPages;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.io.IOException;
-import java.time.Duration;
-
-
+import java.util.List;
 
 public class Search {
-	WebDriver driver;
+    WebDriver driver;
     WebDriverWait wait;
-    
-    @FindBy(xpath="//input[@placeholder='Search for anything']")
+
+    @FindBy(id = "gh-ac")
     WebElement searchBox;
-    @FindBy(xpath="(//span[@class='suggestion-text']//span)[3]")
-    WebElement option;
-    @FindBy(xpath="//div[@id='mainContent']")
-    WebElement pageContent;
-    
+
+    @FindBy(css = ".ui-autocomplete.ui-front li")
+    List<WebElement> suggestionList;
+
+    @FindBy(id = "gh-btn")
+    WebElement searchButton;
+
+    @FindBy(css = ".srp-results .s-item")
+    List<WebElement> searchResults;
+
+    @FindBy(css = ".srp-controls__control--legacy .srp-controls__count-heading")
+    WebElement resultsHeading;
+
+    @FindBy(css = ".search-error-message, .srp-error-message")
+    WebElement searchErrorMessage;
+
     public Search(WebDriver driver) {
-    	this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, 15);
         PageFactory.initElements(driver, this);
-	}
-    
-    
-    public String performSearch(String keyword) {
+    }
+
+    /**
+     * Enter a search keyword in the search box.
+     * @param keyword The keyword to search
+     */
+    public void enterSearchKeyword(String keyword) {
+        wait.until(ExpectedConditions.visibilityOf(searchBox));
         searchBox.clear();
         searchBox.sendKeys(keyword);
-        searchBox.click();
+    }
 
-        try {
-            wait.until(ExpectedConditions.visibilityOf(option));
-            return option.getText(); // returns dropdown suggestion text if visible
-        } catch (Exception e) {
-            return null; // dropdown didn't appear
+    /**
+     * Press Enter to execute the search.
+     */
+    public void pressEnterToSearch() {
+        searchBox.sendKeys(Keys.ENTER);
+    }
+
+    /**
+     * Click the search button to execute the search.
+     */
+    public void clickSearchButton() {
+        wait.until(ExpectedConditions.elementToBeClickable(searchButton));
+        searchButton.click();
+    }
+
+    /**
+     * Select a suggestion from the dropdown by visible text.
+     * @param suggestionText The suggestion to select
+     */
+    public void selectSuggestion(String suggestionText) {
+        wait.until(ExpectedConditions.visibilityOfAllElements(suggestionList));
+        for (WebElement suggestion : suggestionList) {
+            if (suggestion.getText().equalsIgnoreCase(suggestionText)) {
+                suggestion.click();
+                break;
+            }
         }
     }
-    
-	public void clickSearch() throws Exception {
-		wait.until(ExpectedConditions.visibilityOf(option));
-        option.click();
-        
-    }
-	
-	public String searchPageTitleCheck()  throws Exception {
 
-        System.out.println("Switched to new page: " + driver.getTitle());
-        return driver.getTitle();
-        
-	}
-	
-	public void searchProduct(String keyword) {
-		performSearch(keyword);
-		searchBox.sendKeys(Keys.ENTER);
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-		wait.until(ExpectedConditions.visibilityOf(pageContent));
-	}
+    /**
+     * Get the number of search results displayed.
+     * @return Number of results
+     */
+    public int getSearchResultsCount() {
+        wait.until(ExpectedConditions.visibilityOfAllElements(searchResults));
+        return searchResults.size();
+    }
+
+    /**
+     * Get the error message displayed for empty or invalid search.
+     * @return Error message text
+     */
+    public String getSearchErrorMessage() {
+        wait.until(ExpectedConditions.visibilityOf(searchErrorMessage));
+        return searchErrorMessage.getText();
+    }
+
+    /**
+     * Click the first product in the search results.
+     */
+    public void clickFirstProduct() {
+        wait.until(ExpectedConditions.visibilityOfAllElements(searchResults));
+        if (!searchResults.isEmpty()) {
+            searchResults.get(0).findElement(By.cssSelector("a.s-item__link")).click();
+        }
+    }
 }
