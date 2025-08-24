@@ -1,68 +1,83 @@
 package pomPages;
 
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.testng.Assert;
-import org.testng.annotations.Test;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.io.IOException;
-import java.time.Duration;
-
-
+import java.util.List;
 
 public class Search {
-	WebDriver driver;
+    WebDriver driver;
     WebDriverWait wait;
-    
-    @FindBy(xpath="//input[@placeholder='Search for anything']")
+
+    @FindBy(id = "gh-ac")
     WebElement searchBox;
-    @FindBy(xpath="(//span[@class='suggestion-text']//span)[3]")
-    WebElement option;
-    @FindBy(xpath="//div[@id='mainContent']")
-    WebElement pageContent;
-    
+
+    @FindBy(css = "li.srp-suggestion")
+    List<WebElement> suggestionList;
+
+    @FindBy(id = "gh-btn")
+    WebElement searchButton;
+
+    @FindBy(css = ".srp-controls__count-heading")
+    WebElement resultsHeader;
+
+    @FindBy(css = ".srp-controls__control--legacy .srp-controls__count-heading")
+    WebElement emptySearchMessage;
+
     public Search(WebDriver driver) {
-    	this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, 15);
         PageFactory.initElements(driver, this);
-	}
-    
-    
-    public String performSearch(String keyword) {
+    }
+
+    // Verify search box is visible
+    public boolean isSearchBoxVisible() {
+        wait.until(ExpectedConditions.visibilityOf(searchBox));
+        return searchBox.isDisplayed();
+    }
+
+    // Enter search keyword
+    public void enterSearchKeyword(String keyword) {
+        wait.until(ExpectedConditions.visibilityOf(searchBox));
         searchBox.clear();
         searchBox.sendKeys(keyword);
-        searchBox.click();
+    }
 
-        try {
-            wait.until(ExpectedConditions.visibilityOf(option));
-            return option.getText(); // returns dropdown suggestion text if visible
-        } catch (Exception e) {
-            return null; // dropdown didn't appear
+    // Wait for and select a suggestion
+    public void selectSuggestion(int index) {
+        wait.until(ExpectedConditions.visibilityOfAllElements(suggestionList));
+        if (suggestionList.size() > index) {
+            suggestionList.get(index).click();
         }
     }
-    
-	public void clickSearch() throws Exception {
-		wait.until(ExpectedConditions.visibilityOf(option));
-        option.click();
-        
-    }
-	
-	public String searchPageTitleCheck()  throws Exception {
 
-        System.out.println("Switched to new page: " + driver.getTitle());
-        return driver.getTitle();
-        
-	}
-	
-	public void searchProduct(String keyword) {
-		performSearch(keyword);
-		searchBox.sendKeys(Keys.ENTER);
-		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-		wait.until(ExpectedConditions.visibilityOf(pageContent));
-	}
+    // Click search button
+    public void clickSearch() {
+        wait.until(ExpectedConditions.elementToBeClickable(searchButton));
+        searchButton.click();
+    }
+
+    // Submit search by pressing Enter
+    public void submitSearch() {
+        searchBox.submit();
+    }
+
+    // Get results header text
+    public String getResultsHeader() {
+        wait.until(ExpectedConditions.visibilityOf(resultsHeader));
+        return resultsHeader.getText();
+    }
+
+    // Get empty search message (if any)
+    public String getEmptySearchMessage() {
+        try {
+            wait.until(ExpectedConditions.visibilityOf(emptySearchMessage));
+            return emptySearchMessage.getText();
+        } catch (Exception e) {
+            return "";
+        }
+    }
 }
