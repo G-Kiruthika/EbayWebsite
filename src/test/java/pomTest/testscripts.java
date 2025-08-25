@@ -72,11 +72,16 @@ public class testscript{
 	public void addToCartProduct()throws Exception{
 		AddToCart add = new AddToCart(driver);
 		ResultsPage result = new ResultsPage(driver);
+<<<<<<< HEAD:src/test/java/pomTest/testscript.java
 		Thread.sleep(2000);
+=======
+		result.searchProduct("watch");
+>>>>>>> 3b46b920e222fa0cb7bf3ec787595df0614d0322:src/test/java/pomTest/testscripts.java
 		result.clickFirstProduct();
 		// switch to new tab
         ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
         driver.switchTo().window(tabs.get(1));
+<<<<<<< HEAD:src/test/java/pomTest/testscript.java
         Thread.sleep(3000);
         add.clickAddToCart();
         add.clickSeeInCart();
@@ -86,6 +91,11 @@ public class testscript{
         Thread.sleep(2000);
         add.clickSignOut();
 	
+=======
+        add.clickAddToCart();
+        add.clickClose();
+        add.goToCart();
+>>>>>>> 3b46b920e222fa0cb7bf3ec787595df0614d0322:src/test/java/pomTest/testscripts.java
 	}
 	
 	 @AfterClass
