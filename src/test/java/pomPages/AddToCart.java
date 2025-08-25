@@ -1,49 +1,96 @@
 package pomPages;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.time.Duration;
+import java.util.List;
 
 public class AddToCart {
     WebDriver driver;
     WebDriverWait wait;
 
-    private By addToCartButton = By.cssSelector("div.vim.x-atc-action.overlay-placeholder.atcv3modalloading a"); // Add to Cart button
-    private By closeButton = By.cssSelector("#mainContent > div.vim.d-vi-evo-region > div.vim.vi-evo-row-gap > ul > li:nth-child(2) > div.vim.x-atc-action.overlay-placeholder.atcv3modal > div > div.lightbox-dialog__window.lightbox-dialog__window--animate.keyboard-trap--active > div.lightbox-dialog__header > button");
-    private By goToCartButton = By.cssSelector("div.gh-cart span"); // Cart icon
-    private By cartCount = By.cssSelector("div.gh-cart span span"); // Cart count
-    private By addedToCartMsg = By.cssSelector("div.ux-icon ~ span"); // Add to cart confirmation overlay
-    private By cartPageTitle = By.cssSelector("div.top-section h1");
-    
+    @FindBy(css = ".srp-results .s-item a.s-item__link")
+    List<WebElement> productLinks;
+
+    @FindBy(id = "atcRedesignId_btn")
+    WebElement addToCartButton;
+
+    @FindBy(css = ".cart-bucket-lineitem .cart-bucket-lineitem-title")
+    List<WebElement> cartItems;
+
+    @FindBy(css = ".cart-bucket .cart-bucket-lineitem")
+    List<WebElement> cartItemRows;
+
+    @FindBy(css = ".cart-bucket .cart-bucket-lineitem-title")
+    WebElement cartItemTitle;
+
+    @FindBy(css = ".cart-bucket .cart-bucket-lineitem-quantity")
+    WebElement cartItemQuantity;
+
+    @FindBy(css = ".cart-bucket .cart-bucket-lineitem-price")
+    WebElement cartItemPrice;
+
+    @FindBy(css = ".cart-bucket .cart-bucket-lineitem-remove")
+    WebElement removeItemButton;
+
+    @FindBy(css = ".cart-bucket .cart-bucket-lineitem-confirmation")
+    WebElement confirmationMessage;
+
+    @FindBy(id = "gh-cart-n")
+    WebElement cartCount;
+
+    @FindBy(id = "gh-cart-i")
+    WebElement cartIcon;
+
     public AddToCart(WebDriver driver) {
         this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.wait = new WebDriverWait(driver, 15);
+        PageFactory.initElements(driver, this);
     }
 
+    // Select product by index from search results
+    public void selectProduct(int index) {
+        wait.until(ExpectedConditions.visibilityOfAllElements(productLinks));
+        if (index < productLinks.size()) {
+            productLinks.get(index).click();
+        }
+    }
+
+    // Click Add to Cart button
     public void clickAddToCart() {
-        wait.until(ExpectedConditions.elementToBeClickable(addToCartButton)).click();
+        wait.until(ExpectedConditions.elementToBeClickable(addToCartButton));
+        addToCartButton.click();
     }
 
-    public boolean isProductAddedMessageDisplayed() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(addedToCartMsg)).isDisplayed();
+    // Get confirmation message after adding to cart
+    public String getConfirmationMessage() {
+        wait.until(ExpectedConditions.visibilityOf(confirmationMessage));
+        return confirmationMessage.getText();
     }
 
-    public String getCartCount() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(cartCount)).getText();
+    // Get cart count
+    public int getCartCount() {
+        wait.until(ExpectedConditions.visibilityOf(cartCount));
+        String countText = cartCount.getText();
+        try {
+            return Integer.parseInt(countText);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
-    
-    public void clickClose() {
-    	wait.until(ExpectedConditions.visibilityOfElementLocated(closeButton));
-    	driver.findElement(closeButton).click();
+    // Click cart icon to view cart
+    public void clickCartIcon() {
+        wait.until(ExpectedConditions.elementToBeClickable(cartIcon));
+        cartIcon.click();
     }
-    public boolean goToCart() {
-        wait.until(ExpectedConditions.elementToBeClickable(goToCartButton)).click();
-        wait.until(ExpectedConditions.visibilityOfElementLocated(cartPageTitle));
-        return driver.findElement(cartPageTitle).isDisplayed();
+
+    // Get all items in cart
+    public List<WebElement> getCartItems() {
+        wait.until(ExpectedConditions.visibilityOfAllElements(cartItems));
+        return cartItems;
     }
-    
 }
