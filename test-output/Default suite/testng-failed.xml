@@ -3,13 +3,15 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="pomTest.testscript">
+      <class name="pomTest.testscripts">
         <methods>
+          <include name="searchProduct"/>
           <include name="addToCartProduct"/>
-          <include name="tearDown"/>
           <include name="setup"/>
+          <include name="tearDown"/>
+          <include name="loginToAccountPositive"/>
         </methods>
-      </class> <!-- pomTest.testscript -->
+      </class> <!-- pomTest.testscripts -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->
