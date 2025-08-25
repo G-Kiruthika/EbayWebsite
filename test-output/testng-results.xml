@@ -2,28 +2,28 @@
 <testng-results ignored="0" total="3" passed="3" failed="0" skipped="0">
   <reporter-output>
   </reporter-output>
-  <suite started-at="2025-08-19T15:52:35 IST" name="Default suite" finished-at="2025-08-19T15:53:23 IST" duration-ms="48708">
+  <suite started-at="2025-08-25T17:52:48 IST" name="Default suite" finished-at="2025-08-25T17:53:45 IST" duration-ms="56873">
     <groups>
     </groups>
-    <test started-at="2025-08-19T15:52:35 IST" name="Default test" finished-at="2025-08-19T15:53:23 IST" duration-ms="48708">
+    <test started-at="2025-08-25T17:52:48 IST" name="Default test" finished-at="2025-08-25T17:53:45 IST" duration-ms="56873">
       <class name="pomTest.testscript">
-        <test-method is-config="true" signature="setup()[pri:0, instance:pomTest.testscript@4988d8b8]" started-at="2025-08-19T15:52:35 IST" name="setup" finished-at="2025-08-19T15:52:41 IST" duration-ms="6211" status="PASS">
+        <test-method is-config="true" signature="setup()[pri:0, instance:pomTest.testscript@305b7c14]" started-at="2025-08-25T17:52:48 IST" name="setup" finished-at="2025-08-25T17:52:54 IST" duration-ms="5383" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- setup -->
-        <test-method signature="loginToAccountPositive()[pri:1, instance:pomTest.testscript@4988d8b8]" started-at="2025-08-19T15:52:41 IST" name="loginToAccountPositive" finished-at="2025-08-19T15:52:50 IST" duration-ms="8910" status="PASS">
+        <test-method signature="loginToAccountPositive()[pri:1, instance:pomTest.testscript@305b7c14]" started-at="2025-08-25T17:52:54 IST" name="loginToAccountPositive" finished-at="2025-08-25T17:53:02 IST" duration-ms="8334" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- loginToAccountPositive -->
-        <test-method signature="searchProduct()[pri:2, instance:pomTest.testscript@4988d8b8]" started-at="2025-08-19T15:52:50 IST" name="searchProduct" finished-at="2025-08-19T15:53:00 IST" duration-ms="9993" status="PASS">
+        <test-method signature="searchProduct()[pri:2, instance:pomTest.testscript@305b7c14]" started-at="2025-08-25T17:53:02 IST" name="searchProduct" finished-at="2025-08-25T17:53:07 IST" depends-on-methods="pomTest.testscript.loginToAccountPositive" duration-ms="5352" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- searchProduct -->
-        <test-method signature="addToWish()[pri:5, instance:pomTest.testscript@4988d8b8]" started-at="2025-08-19T15:53:00 IST" name="addToWish" finished-at="2025-08-19T15:53:15 IST" duration-ms="14722" status="PASS">
+        <test-method signature="addToCartProduct()[pri:3, instance:pomTest.testscript@305b7c14]" started-at="2025-08-25T17:53:07 IST" name="addToCartProduct" finished-at="2025-08-25T17:53:37 IST" duration-ms="29943" status="PASS">
           <reporter-output>
           </reporter-output>
-        </test-method> <!-- addToWish -->
-        <test-method is-config="true" signature="tearDown()[pri:0, instance:pomTest.testscript@4988d8b8]" started-at="2025-08-19T15:53:15 IST" name="tearDown" finished-at="2025-08-19T15:53:23 IST" duration-ms="8805" status="PASS">
+        </test-method> <!-- addToCartProduct -->
+        <test-method is-config="true" signature="tearDown()[pri:0, instance:pomTest.testscript@305b7c14]" started-at="2025-08-25T17:53:37 IST" name="tearDown" finished-at="2025-08-25T17:53:45 IST" duration-ms="7820" status="PASS">
           <reporter-output>
           </reporter-output>
         </test-method> <!-- tearDown -->

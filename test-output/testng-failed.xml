@@ -5,8 +5,7 @@
     <classes>
       <class name="pomTest.testscript">
         <methods>
-          <include name="searchProduct"/>
-          <include name="addToWish"/>
+          <include name="addToCartProduct"/>
           <include name="tearDown"/>
           <include name="setup"/>
         </methods>

@@ -8,8 +8,10 @@ import org.testng.annotations.Test;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 
+import org.testng.Assert;
 import org.testng.AssertJUnit;
 import java.time.Duration;
+import java.util.ArrayList;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.openqa.selenium.WebDriver;
@@ -21,10 +23,10 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.Test;
 
-import pomPages.AddToWishlist;
 import pomPages.Login;
 import pomPages.Search;
-
+import pomPages.AddToCart;
+import pomPages.ResultsPage;
 public class testscript{
 	public WebDriver driver;
 	
@@ -34,6 +36,7 @@ public class testscript{
  
         driver.manage().window().maximize();
         driver.get("https://signin.ebay.com/signin");
+
         System.out.println("Navigating to URL ");
         
     }
@@ -59,33 +62,31 @@ public class testscript{
         Thread.sleep(3000);
        
     }
-	@Test(priority=2)
+	@Test(priority=2, dependsOnMethods = {"loginToAccountPositive"})
 	public void searchProduct()throws Exception{
 		Search search = new Search(driver);
-		search.searchProduct("fossil watch");
+		search.searchProduct("titan watch");
 		System.out.println("Product searched");
 	}
-	@Test(priority=5)
-    public void addToWish() throws Exception {
-		 AddToWishlist add = new AddToWishlist(driver);
-		 add.selectProduct();
-		 
-		 Thread.sleep(4000);
-		 
-		// Step 1: Reset state - if already in wishlist, unwatch it
-		 String initialText = add.readAddToWishlistBtnText();
-		 
-		 if (initialText.equalsIgnoreCase("Added to watchlist")) {
-		     System.out.println("Resetting state: Clicking 'Unwatch' to remove from wishlist");
-		     add.clickAddToWishListBtn(); // Click to unwatch
-		     Thread.sleep(2000);
-		 }
-
-		 // Step 2: Add to wishlist
-		 add.clickAddToWishListBtn();
-		 System.out.println("Clicked Add to wishlist");
-		 Thread.sleep(2000);
-	}	
+	@Test(priority=3)
+	public void addToCartProduct()throws Exception{
+		AddToCart add = new AddToCart(driver);
+		ResultsPage result = new ResultsPage(driver);
+		Thread.sleep(2000);
+		result.clickFirstProduct();
+		// switch to new tab
+        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
+        driver.switchTo().window(tabs.get(1));
+        Thread.sleep(3000);
+        add.clickAddToCart();
+        add.clickSeeInCart();
+        //add.clickClose();
+        Thread.sleep(3000);
+        add.goToCart();
+        Thread.sleep(2000);
+        add.clickSignOut();
+	
+	}
 	
 	 @AfterClass
 	    public void tearDown() {
