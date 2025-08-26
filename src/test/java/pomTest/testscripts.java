@@ -1,101 +1,93 @@
 package pomTest;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import io.github.bonigarcia.wdm.WebDriverManager;
-
+import org.testng.annotations.*;
 import org.testng.Assert;
-import org.testng.AssertJUnit;
-import java.time.Duration;
-import java.util.ArrayList;
-
-import org.apache.log4j.PropertyConfigurator;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.edge.EdgeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.Test;
-
+import io.github.bonigarcia.wdm.WebDriverManager;
 import pomPages.Login;
 import pomPages.Search;
-import pomPages.AddToCart;
 import pomPages.ResultsPage;
-public class testscripts{
-	public WebDriver driver;
-	
-	@BeforeClass
-    public void setup() {
+import pomPages.AddToCart;
+import java.util.Properties;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+public class testscripts {
+    private WebDriver driver;
+    private Login loginPage;
+    private Search searchPage;
+    private ResultsPage resultsPage;
+    private AddToCart addToCartPage;
+    private Properties config;
+
+    private String baseUrl;
+    private String email;
+    private String password;
+
+    @BeforeClass
+    public void setUp() throws IOException {
+        WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
- 
         driver.manage().window().maximize();
-        driver.get("https://signin.ebay.com/signin");
-
-        System.out.println("Navigating to URL ");
-        
+        config = new Properties();
+        config.load(new FileInputStream("src/test/resources/config.properties"));
+        baseUrl = config.getProperty("baseUrl", "https://signin.ebay.com/signin");
+        email = config.getProperty("email");
+        password = config.getProperty("password");
+        driver.get(baseUrl);
+        loginPage = new Login(driver);
+        searchPage = new Search(driver);
+        resultsPage = new ResultsPage(driver);
+        addToCartPage = new AddToCart(driver);
     }
- 
-	//positive login testcase
-	@Test(priority=1)
-    public void loginToAccountPositive() throws Exception {
-		Login loginPage = new Login(driver);
-		loginPage.verifyEmailVisibility();
-		loginPage.verifyEmailClickability();
-        loginPage.enterEmail("qetestascend@gmail.com");
-        loginPage.verifyContinueBtnVisibility();
-        loginPage.verifyContinueBtnClickability();
+
+    @Test(priority = 1)
+    public void loginToAccountPositive() {
+        // Test Case: Login with valid credentials
+        loginPage.enterEmail(email);
         loginPage.clickContinue();
-        loginPage.verifyPasswordVisibility();
-        loginPage.verifyPasswordClickability();
-        loginPage.enterPassword("Kiruthika2002");
-        loginPage.verifySignInBtnVisibility();
-        loginPage.verifySignInBtnClickability();
+        loginPage.enterPassword(password);
         loginPage.clickSignIn();
-        loginPage.homePageTitleCheck();
-        System.out.println("Login successful");
-        Thread.sleep(3000);
-       
+        // Assert: Home page/profile icon visible (by checking page title contains 'eBay')
+        String title = driver.getTitle();
+        Assert.assertTrue(title.toLowerCase().contains("ebay"), "Login failed or homepage not loaded. Title: " + title);
     }
-	@Test(priority=2, dependsOnMethods = {"loginToAccountPositive"})
-	public void searchProduct()throws Exception{
-		Search search = new Search(driver);
-		search.searchProduct("titan watch");
-		System.out.println("Product searched");
-	}
-	@Test(priority=3)
-	public void addToCartProduct()throws Exception{
-		AddToCart add = new AddToCart(driver);
-		ResultsPage result = new ResultsPage(driver);
-		Thread.sleep(2000);
 
-		result.clickFirstProduct();
-		// switch to new tab
-        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(1));
+    @Test(priority = 2, dependsOnMethods = {"loginToAccountPositive"})
+    public void searchProduct() {
+        // Test Case: Search for a product
+        String keyword = config.getProperty("searchKeyword", "titan watch");
+        searchPage.searchProduct(keyword);
+        // Assert: Results page loaded and at least one result present
+        Assert.assertTrue(resultsPage.getResultsCount() > 0, "No search results found for: " + keyword);
+    }
 
-        Thread.sleep(3000);
-        add.clickAddToCart();
-        add.clickSeeInCart();
-        //add.clickClose();
-        Thread.sleep(2000);
-        add.clickSignOut();
-        Thread.sleep(3000);
-	}
-	
-	 @AfterClass
-	    public void tearDown() {
-	        if (driver != null) {
-	            driver.quit();
-	            System.out.println("Browser closed.");
-	        }
-	    }
+    @Test(priority = 3, dependsOnMethods = {"searchProduct"})
+    public void addToCartProduct() {
+        // Test Case: Add first product to cart and verify
+        int cartCountBefore = addToCartPage.getCartCount();
+        resultsPage.clickFirstProduct();
+        // Switch to new tab
+        for (String handle : driver.getWindowHandles()) {
+            driver.switchTo().window(handle);
+        }
+        addToCartPage.clickAddToCart();
+        Assert.assertTrue(addToCartPage.isProductAddedMessageDisplayed(), "Product added message not displayed.");
+        int cartCountAfter = addToCartPage.getCartCount();
+        Assert.assertTrue(cartCountAfter > cartCountBefore, "Cart count did not increment after adding product.");
+        addToCartPage.clickSeeInCart();
+        Assert.assertTrue(addToCartPage.goToCart(), "Cart page not loaded after clicking cart icon.");
+        // Sign out
+        addToCartPage.clickSignOut();
+        // Assert: Redirected to sign-in page
+        Assert.assertTrue(driver.getTitle().toLowerCase().contains("sign in") || driver.getCurrentUrl().contains("signin"), "Sign out failed or not redirected to sign-in page.");
+    }
+
+    @AfterClass
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 }
-
-
-
