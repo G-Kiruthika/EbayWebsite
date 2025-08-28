@@ -1,101 +1,94 @@
 package pomTest;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import io.github.bonigarcia.wdm.WebDriverManager;
-
-import org.testng.Assert;
-import org.testng.AssertJUnit;
-import java.time.Duration;
-import java.util.ArrayList;
-
-import org.apache.log4j.PropertyConfigurator;
+import org.testng.annotations.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.edge.EdgeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.Test;
-
+import io.github.bonigarcia.wdm.WebDriverManager;
 import pomPages.Login;
 import pomPages.Search;
-import pomPages.AddToCart;
 import pomPages.ResultsPage;
-public class testscripts{
-	public WebDriver driver;
-	
-	@BeforeClass
+import pomPages.AddToCart;
+import java.util.Set;
+import java.util.Iterator;
+import static org.testng.Assert.*;
+
+public class testscripts {
+    WebDriver driver;
+    Login loginPage;
+    Search searchPage;
+    ResultsPage resultsPage;
+    AddToCart addToCartPage;
+
+    // Test data (should be externalized in real projects)
+    String email = "testuser@example.com";
+    String password = "TestPassword123";
+    String searchKeyword = "titan watch";
+
+    @BeforeClass
     public void setup() {
+        WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
- 
         driver.manage().window().maximize();
         driver.get("https://signin.ebay.com/signin");
-
-        System.out.println("Navigating to URL ");
-        
+        loginPage = new Login(driver);
+        searchPage = new Search(driver);
+        resultsPage = new ResultsPage(driver);
+        addToCartPage = new AddToCart(driver);
     }
- 
-	//positive login testcase
-	@Test(priority=1)
-    public void loginToAccountPositive() throws Exception {
-		Login loginPage = new Login(driver);
-		loginPage.verifyEmailVisibility();
-		loginPage.verifyEmailClickability();
-        loginPage.enterEmail("qetestascend@gmail.com");
-        loginPage.verifyContinueBtnVisibility();
-        loginPage.verifyContinueBtnClickability();
+
+    @Test(priority = 1)
+    public void loginToAccountPositive() {
+        // Step 1: Login
+        loginPage.enterEmail(email);
         loginPage.clickContinue();
-        loginPage.verifyPasswordVisibility();
-        loginPage.verifyPasswordClickability();
-        loginPage.enterPassword("Kiruthika2002");
-        loginPage.verifySignInBtnVisibility();
-        loginPage.verifySignInBtnClickability();
+        loginPage.enterPassword(password);
         loginPage.clickSignIn();
-        loginPage.homePageTitleCheck();
-        System.out.println("Login successful");
-        Thread.sleep(3000);
-       
+        // Assert: login success by checking page title or profile icon
+        String title = driver.getTitle();
+        assertTrue(title.toLowerCase().contains("ebay"), "Login failed or homepage not loaded");
     }
-	@Test(priority=2, dependsOnMethods = {"loginToAccountPositive"})
-	public void searchProduct()throws Exception{
-		Search search = new Search(driver);
-		search.searchProduct("titan watch");
-		System.out.println("Product searched");
-	}
-	@Test(priority=3)
-	public void addToCartProduct()throws Exception{
-		AddToCart add = new AddToCart(driver);
-		ResultsPage result = new ResultsPage(driver);
-		Thread.sleep(2000);
 
-		result.clickFirstProduct();
-		// switch to new tab
-        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(1));
+    @Test(priority = 2, dependsOnMethods = {"loginToAccountPositive"})
+    public void searchProduct() {
+        // Step 2: Search for a product
+        searchPage.searchProduct(searchKeyword);
+        // Assert: main content visible and results present
+        int count = resultsPage.getResultsCount();
+        assertTrue(count > 0, "No search results found for: " + searchKeyword);
+    }
 
-        Thread.sleep(3000);
-        add.clickAddToCart();
-        add.clickSeeInCart();
-        //add.clickClose();
-        Thread.sleep(2000);
-        add.clickSignOut();
-        Thread.sleep(3000);
-	}
-	
-	 @AfterClass
-	    public void tearDown() {
-	        if (driver != null) {
-	            driver.quit();
-	            System.out.println("Browser closed.");
-	        }
-	    }
+    @Test(priority = 3, dependsOnMethods = {"searchProduct"})
+    public void addToCartProduct() {
+        // Step 3: Click first product in results
+        resultsPage.clickFirstProduct();
+        // Switch to new tab
+        String originalHandle = driver.getWindowHandle();
+        Set<String> handles = driver.getWindowHandles();
+        for (String handle : handles) {
+            if (!handle.equals(originalHandle)) {
+                driver.switchTo().window(handle);
+                break;
+            }
+        }
+        // Step 4: Add to cart
+        String beforeCount = addToCartPage.getCartCount();
+        addToCartPage.clickAddToCart();
+        assertTrue(addToCartPage.isProductAddedMessageDisplayed(), "Product not added to cart confirmation not displayed");
+        String afterCount = addToCartPage.getCartCount();
+        assertNotEquals(beforeCount, afterCount, "Cart count did not increment after adding product");
+        // Step 5: See in cart
+        addToCartPage.clickSeeInCart();
+        assertTrue(addToCartPage.goToCart(), "Cart page not displayed");
+        // Step 6: Sign out
+        addToCartPage.clickSignOut();
+        // Assert: redirected to sign-in page
+        assertTrue(driver.getTitle().toLowerCase().contains("sign in"), "Not redirected to sign-in page after sign out");
+    }
+
+    @AfterClass
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 }
-
-
-
