@@ -1,101 +1,77 @@
 package pomTest;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import io.github.bonigarcia.wdm.WebDriverManager;
-
-import org.testng.Assert;
-import org.testng.AssertJUnit;
-import java.time.Duration;
-import java.util.ArrayList;
-
-import org.apache.log4j.PropertyConfigurator;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.edge.EdgeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import org.testng.annotations.Test;
-
+import org.testng.Assert;
+import org.testng.annotations.*;
 import pomPages.Login;
-import pomPages.Search;
-import pomPages.AddToCart;
-import pomPages.ResultsPage;
-public class testscripts{
-	public WebDriver driver;
-	
-	@BeforeClass
-    public void setup() {
+import pomPages.HomePage;
+import pomPages.CreateRepoPage;
+import pomPages.DeleteRepoPage;
+import pomPages.SignOut;
+
+public class testscripts {
+    WebDriver driver;
+    Login loginPage;
+    HomePage homePage;
+    CreateRepoPage createRepoPage;
+    DeleteRepoPage deleteRepoPage;
+    SignOut signOutPage;
+
+    String baseUrl = "https://github.com/";
+    String email = "testuser@example.com";
+    String password = "TestPassword123";
+    String repoName = "selenium-test-repo";
+
+    @BeforeClass
+    public void setUp() {
         driver = new ChromeDriver();
- 
         driver.manage().window().maximize();
-        driver.get("https://signin.ebay.com/signin");
-
-        System.out.println("Navigating to URL ");
-        
+        driver.get(baseUrl);
+        loginPage = new Login(driver);
+        homePage = new HomePage(driver);
+        createRepoPage = new CreateRepoPage(driver);
+        deleteRepoPage = new DeleteRepoPage(driver);
+        signOutPage = new SignOut(driver);
     }
- 
-	//positive login testcase
-	@Test(priority=1)
-    public void loginToAccountPositive() throws Exception {
-		Login loginPage = new Login(driver);
-		loginPage.verifyEmailVisibility();
-		loginPage.verifyEmailClickability();
-        loginPage.enterEmail("qetestascend@gmail.com");
-        loginPage.verifyContinueBtnVisibility();
-        loginPage.verifyContinueBtnClickability();
-        loginPage.clickContinue();
-        loginPage.verifyPasswordVisibility();
-        loginPage.verifyPasswordClickability();
-        loginPage.enterPassword("Kiruthika2002");
-        loginPage.verifySignInBtnVisibility();
-        loginPage.verifySignInBtnClickability();
-        loginPage.clickSignIn();
-        loginPage.homePageTitleCheck();
-        System.out.println("Login successful");
-        Thread.sleep(3000);
-       
+
+    @Test(priority = 1)
+    public void loginPositive() {
+        loginPage.clickLoginLink();
+        loginPage.enterEmail(email);
+        loginPage.enterPassword(password);
+        loginPage.clickSignInButton();
+        Assert.assertTrue(driver.getTitle().contains("GitHub"), "Login failed or incorrect page title.");
     }
-	@Test(priority=2, dependsOnMethods = {"loginToAccountPositive"})
-	public void searchProduct()throws Exception{
-		Search search = new Search(driver);
-		search.searchProduct("titan watch");
-		System.out.println("Product searched");
-	}
-	@Test(priority=3)
-	public void addToCartProduct()throws Exception{
-		AddToCart add = new AddToCart(driver);
-		ResultsPage result = new ResultsPage(driver);
-		Thread.sleep(2000);
 
-		result.clickFirstProduct();
-		// switch to new tab
-        ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
-        driver.switchTo().window(tabs.get(1));
+    @Test(priority = 2)
+    public void RepoCreation() {
+        homePage.clickCreateRepo();
+        createRepoPage.enterRepoName(repoName);
+        createRepoPage.createRepoBtnClick();
+        Assert.assertTrue(driver.getCurrentUrl().contains(repoName), "Repository creation failed or incorrect URL.");
+    }
 
-        Thread.sleep(3000);
-        add.clickAddToCart();
-        add.clickSeeInCart();
-        //add.clickClose();
-        Thread.sleep(2000);
-        add.clickSignOut();
-        Thread.sleep(3000);
-	}
-	
-	 @AfterClass
-	    public void tearDown() {
-	        if (driver != null) {
-	            driver.quit();
-	            System.out.println("Browser closed.");
-	        }
-	    }
+    @Test(priority = 3)
+    public void DeleteRepo() {
+        deleteRepoPage.clickSettings();
+        deleteRepoPage.clickDelete();
+        deleteRepoPage.typeRepoName("testuser/" + repoName);
+        deleteRepoPage.clickProceedDelete();
+        Assert.assertTrue(driver.getCurrentUrl().contains("/repositories"), "Repository deletion failed or incorrect redirect.");
+    }
+
+    @Test(priority = 4)
+    public void SignOut() {
+        signOutPage.clickProfile();
+        signOutPage.clickSignOut();
+        Assert.assertTrue(driver.getTitle().contains("GitHub: Where the world builds software"), "Sign out failed or incorrect page title.");
+    }
+
+    @AfterClass
+    public void tearDown() {
+        if (driver != null) {
+            driver.quit();
+        }
+    }
 }
-
-
-
